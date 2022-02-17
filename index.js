@@ -47,11 +47,12 @@ const createRequest = (input, callback) => {
         path = 'draw'
       } else if (purpose === 'WINNER') {
         path = 'winner_id'
-      } else if (purpose === 'CANCELED') {
+      } else if (purpose === 'STATUS') {
         path = 'status'
       } else {
         return callback(500, Requester.errored(jobRunID, 'unknown purpose'))
       }
+      response.data = {[path]: response.data[path]}
       response.data.result = purpose === 'WINNER' ? Requester.validateResultNumber(response.data, [path]) : Requester.getResult(response.data, [path])
       callback(response.status, Requester.success(jobRunID, response))
     })

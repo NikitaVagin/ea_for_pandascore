@@ -12,7 +12,7 @@ describe('createRequest', () => {
       { name: 'id not supplied', testData: { data: { muchId, purpose: 'winner' } } },
       { name: 'purpose: winner', testData: { id: jobID, data: { muchId, purpose: 'winner' } } },
       { name: 'purpose: draw', testData: { id: jobID, data: { muchId, purpose: 'draw'  } } },
-      { name: 'purpose: canceled', testData: { id: jobID, data: { muchId, purpose: 'canceled' } } }
+      { name: 'purpose: status', testData: { id: jobID, data: { muchId, purpose: 'status' } } }
     ]
 
     requests.forEach(req => {
@@ -25,7 +25,7 @@ describe('createRequest', () => {
             assert.isAbove(Number(data.result), 0)
           }else if(req.testData.data.purpose == 'draw') {
             assert.isBoolean(data.result);
-          }else{
+          }else {
             assert.oneOf(data.result, ['not_started', 'running', 'postponed', 'canceled', 'finished']);
           }
           done()
