@@ -12,8 +12,8 @@ const customError = (data) => {
 // with a Boolean value indicating whether or not they
 // should be required.
 const customParams = {
-  base: ['base', 'from', 'coin'],
-  quote: ['quote', 'to', 'market'],
+  muchId: ['muchId'],
+  purpose: ['purpose'],
   endpoint: false
 }
 
@@ -21,20 +21,17 @@ const createRequest = (input, callback) => {
   // The Validator helps you validate the Chainlink request data
   const validator = new Validator(callback, input, customParams)
   const jobRunID = validator.validated.id
-  const endpoint = validator.validated.data.endpoint || 'price'
-  const url = `https://min-api.cryptocompare.com/data/${endpoint}`
-  const fsym = validator.validated.data.base.toUpperCase()
-  const tsyms = validator.validated.data.quote.toUpperCase()
+  const url = `https://api.pandascore.co/matches/${validator.validated.data.muchId}`
+  const purpose = validator.validated.data.purpose.toUpperCase()
 
   const params = {
-    fsym,
-    tsyms
+    token: process.env.API_KEY
   }
 
   // This is where you would add method and headers
   // you can add method like GET or POST and add it to the config
   // The default is GET requests
-  // method = 'get' 
+  // method = 'get'
   // headers = 'headers.....'
   const config = {
     url,
@@ -45,10 +42,17 @@ const createRequest = (input, callback) => {
   // or connection failure
   Requester.request(config, customError)
     .then(response => {
-      // It's common practice to store the desired value at the top-level
-      // result key. This allows different adapters to be compatible with
-      // one another.
-      response.data.result = Requester.validateResultNumber(response.data, [tsyms])
+      let path
+      if (purpose === 'DRAW') {
+        path = 'draw'
+      } else if (purpose === 'WINNER') {
+        path = 'winner_id'
+      } else if (purpose === 'CANCELED') {
+        path = 'status'
+      } else {
+        return callback(500, Requester.errored(jobRunID, 'unknown purpose'))
+      }
+      response.data.result = purpose === 'WINNER' ? Requester.validateResultNumber(response.data, [path]) : Requester.getResult(response.data, [path])
       callback(response.status, Requester.success(jobRunID, response))
     })
     .catch(error => {
